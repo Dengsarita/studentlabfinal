@@ -1,0 +1,77 @@
+# ---------------- POD 1: api-gateway + registration (2 containers) ----------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-registration
+  labels:
+    app: gateway-registration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-registration
+  template:
+    metadata:
+      labels:
+        app: gateway-registration
+    spec:
+      containers:
+        - name: api-gateway
+          image: student/api-gateway:1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 7000
+          env:
+            - name: PORT
+              value: "7000"
+            # same pod -> registration is reachable on localhost
+            - name: REGISTRATION_SERVICE
+              value: "http://localhost:7001"
+            # other pod -> reached through the search-service Service
+            - name: SEARCH_SERVICE
+              value: "http://search-service:7002"
+        - name: registration-service
+          image: student/registration-service:1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 7001
+          env:
+            - name: PORT
+              value: "7001"
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: student-secret
+                  key: MONGO_URI
+---
+# ---------------- POD 2: search microservice ----------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search
+  labels:
+    app: search
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search
+  template:
+    metadata:
+      labels:
+        app: search
+    spec:
+      containers:
+        - name: search-service
+          image: student/search-service:1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 7002
+          env:
+            - name: PORT
+              value: "7002"
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: student-secret
+                  key: MONGO_URI

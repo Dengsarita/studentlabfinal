@@ -1,0 +1,26 @@
+# Gateway Service: the ONLY entry point (all requests go through the API gateway)
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+spec:
+  type: NodePort
+  selector:
+    app: gateway-registration
+  ports:
+    - port: 7000
+      targetPort: 7000
+      nodePort: 30700
+---
+# Search Service: internal only, used by the gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-service
+spec:
+  type: ClusterIP
+  selector:
+    app: search
+  ports:
+    - port: 7002
+      targetPort: 7002

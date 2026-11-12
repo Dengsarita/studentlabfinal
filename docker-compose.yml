@@ -1,0 +1,18 @@
+services:
+  registration:
+    build: ./registration-service
+    env_file: ./registration-service/.env
+
+  search:
+    build: ./search-service
+    env_file: ./search-service/.env
+
+  api-gateway:
+    build: ./api-gateway
+    env_file: ./api-gateway/.env
+    environment:
+      REGISTRATION_SERVICE: http://registration:7001
+      SEARCH_SERVICE: http://search:7002
+    ports:
+      - "7000:7000"
+    depends_on: [registration, search]
